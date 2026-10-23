@@ -1,69 +1,588 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Sombras del Pasillo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sombras del Pasillo</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #080808;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+header {
+    padding: 20px 10px;
+    background: #111;
+    border-bottom: 2px solid #e63946;
+}
+
+h1 {
+    color: #e63946;
+    font-size: 32px;
+    margin: 5px;
+    text-shadow: 0 0 12px red;
+}
+
+header p {
+    color: #aaa;
+}
+
+.panel {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px;
+}
+
+.dato {
+    background: #202020;
+    border: 1px solid #e63946;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+#puntos {
+    color: #ffd166;
+}
+
+#vidas {
+    color: #ff334f;
+}
+
+#nivel {
+    color: #70d6ff;
+}
+
+.juego {
+    width: 95%;
+    max-width: 950px;
+    margin: auto;
+    border: 3px solid #333;
+    box-shadow: 0 0 20px #650b18;
+    background: black;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.mensaje {
+    color: #ff4d5a;
+    font-size: 20px;
+    font-weight: bold;
+    min-height: 28px;
+    margin: 12px;
+}
+
+h2 {
+    color: #e63946;
+}
+
+.instrucciones {
+    width: 95%;
+    max-width: 950px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #151515;
+    border: 1px solid #333;
+    border-radius: 10px;
+}
+
+.controles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 15px;
+}
+
+button {
+    background: #242424;
+    color: white;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+button:hover {
+    background: #e63946;
+    border-color: white;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.reiniciar {
+    background: #a20e25;
+    border-color: #e63946;
+    margin: 10px;
+}
+
+.nota {
+    color: #aaa;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+footer {
+    padding: 20px;
+    color: #777;
+    border-top: 1px solid #333;
+}
+</style>
 </head>
-<body style="background-color: black; color: white;">
 
-<h2>Sombras del Pasillo</h2>
-<p id="puntos">Puntos: 0</p>
+<body>
 
-<canvas id="juego" width="500" height="300"
-style="background-color: #333;"></canvas>
+<header>
+    <h1>☠ SOMBRAS DEL PASILLO ☠</h1>
+    <p>Aventura y terror en una escuela abandonada</p>
+</header>
+
+<div class="panel">
+    <div class="dato" id="puntos">🪙 Puntos: 0</div>
+    <div class="dato" id="vidas">❤️ Vidas: 3</div>
+    <div class="dato" id="nivel">🚪 Nivel: 1</div>
+</div>
+
+<div class="juego">
+    <canvas id="juego" width="900" height="420"></canvas>
+</div>
+
+<div class="mensaje" id="mensaje">
+    ¡Escapá de la sombra y buscá la salida!
+</div>
+
+<section class="instrucciones">
+    <h2>CONTROLES DEL JUEGO</h2>
+
+    <p>Usá las flechas del teclado o los botones para moverte.</p>
+
+    <div class="controles">
+        <button onclick="moverBoton('ArrowUp')">⬆ Arriba</button>
+    </div>
+
+    <div class="controles">
+        <button onclick="moverBoton('ArrowLeft')">⬅ Izquierda</button>
+        <button onclick="moverBoton('ArrowDown')">⬇ Abajo</button>
+        <button onclick="moverBoton('ArrowRight')">➡ Derecha</button>
+    </div>
+
+    <p class="nota">
+        También podés usar W, A, S y D.<br>
+        Juntá las monedas, evitá al enemigo y alcanzá la puerta roja.<br>
+        Si perdés todas las vidas, tendrás que reiniciar.
+    </p>
+
+    <button class="reiniciar" onclick="reiniciarJuego()">
+        ↻ REINICIAR JUEGO
+    </button>
+</section>
+
+<footer>
+    SOMBRAS DEL PASILLO | Juego de terror
+</footer>
 
 <script>
-let jugadorX = 100;
-let jugadorY = 100;
-let monedaX = 200;
-let monedaY = 200;
-let puntos = 0;
+let canvas = document.getElementById("juego");
+let dibujo = canvas.getContext("2d");
 
-let pantalla = document.getElementById("juego");
-let dibujo = pantalla.getContext("2d");
+let jugadorX;
+let jugadorY;
+let enemigoX;
+let enemigoY;
+let puntos;
+let vidas;
+let nivel;
+let monedas;
+let jugando;
+let invencible;
+let ultimoGolpe;
+let ultimaMoneda;
+let tiempoInicio;
 
-function dibujar() {
-    dibujo.clearRect(0, 0, 500, 300);
+function crearMonedas() {
+    monedas = [];
 
-    dibujo.fillStyle = "red";
-    dibujo.fillRect(jugadorX, jugadorY, 25, 25);
+    for (let i = 0; i < 6; i++) {
+        monedas.push({
+            x: 100 + i * 125,
+            y: 335,
+            tomada: false
+        });
+    }
+}
 
-    dibujo.fillStyle = "yellow";
+function reiniciarJuego() {
+    jugadorX = 60;
+    jugadorY = 320;
+
+    enemigoX = 450;
+    enemigoY = 320;
+
+    puntos = 0;
+    vidas = 3;
+    nivel = 1;
+
+    jugando = true;
+    invencible = false;
+    ultimoGolpe = 0;
+    ultimaMoneda = -1;
+    tiempoInicio = Date.now();
+
+    crearMonedas();
+    actualizarDatos();
+    dibujarJuego();
+
+    document.getElementById("mensaje").textContent =
+        "¡Escapá de la sombra y buscá la salida!";
+}
+
+function actualizarDatos() {
+    document.getElementById("puntos").textContent =
+        "🪙 Puntos: " + puntos;
+
+    document.getElementById("vidas").textContent =
+        "❤️ Vidas: " + vidas;
+
+    document.getElementById("nivel").textContent =
+        "🚪 Nivel: " + nivel;
+}
+
+function dibujarJuego() {
+    // Fondo oscuro
+    dibujo.fillStyle = "#0d0d0d";
+    dibujo.fillRect(0, 0, 900, 420);
+
+    // Paredes
+    dibujo.fillStyle = "#252525";
+    dibujo.fillRect(0, 100, 900, 220);
+
+    // Pared superior
+    dibujo.fillStyle = "#171717";
+    dibujo.fillRect(0, 0, 900, 100);
+
+    // Líneas de las paredes
+    dibujo.strokeStyle = "#343434";
+    dibujo.lineWidth = 3;
+
+    for (let x = 0; x < 900; x += 75) {
+        dibujo.beginPath();
+        dibujo.moveTo(x, 100);
+        dibujo.lineTo(x, 320);
+        dibujo.stroke();
+    }
+
+    // Grietas de la escuela
+    dibujo.strokeStyle = "#111111";
     dibujo.beginPath();
-    dibujo.arc(monedaX, monedaY, 10, 0, 6.28);
+    dibujo.moveTo(120, 110);
+    dibujo.lineTo(135, 135);
+    dibujo.lineTo(120, 155);
+    dibujo.lineTo(145, 180);
+    dibujo.stroke();
+
+    dibujo.beginPath();
+    dibujo.moveTo(740, 110);
+    dibujo.lineTo(725, 140);
+    dibujo.lineTo(745, 160);
+    dibujo.stroke();
+
+    // Ventana
+    dibujo.fillStyle = "#080b10";
+    dibujo.fillRect(35, 130, 140, 100);
+    dibujo.strokeStyle = "#555555";
+    dibujo.strokeRect(35, 130, 140, 100);
+
+    dibujo.fillStyle = "#18232b";
+    dibujo.fillRect(45, 140, 120, 80);
+
+    // Armarios
+    for (let i = 0; i < 4; i++) {
+        let x = 210 + i * 53;
+
+        dibujo.fillStyle = "#15191d";
+        dibujo.fillRect(x, 155, 45, 140);
+
+        dibujo.strokeStyle = "#454545";
+        dibujo.strokeRect(x, 155, 45, 140);
+
+        dibujo.fillStyle = "#666666";
+        dibujo.fillRect(x + 34, 210, 3, 20);
+
+        dibujo.fillStyle = "#292929";
+        dibujo.fillRect(x + 7, 170, 28, 4);
+        dibujo.fillRect(x + 7, 180, 28, 4);
+    }
+
+    // Cartel
+    dibujo.fillStyle = "#6e111b";
+    dibujo.font = "bold 19px Arial";
+    dibujo.fillText("NO ESTÁS SOLO", 350, 175);
+
+    // Puerta de salida
+    dibujo.fillStyle = "#330c12";
+    dibujo.fillRect(795, 145, 75, 175);
+
+    dibujo.strokeStyle = "#e63946";
+    dibujo.lineWidth = 4;
+    dibujo.strokeRect(795, 145, 75, 175);
+
+    dibujo.fillStyle = "#e63946";
+    dibujo.fillRect(807, 165, 50, 65);
+
+    dibujo.fillStyle = "#111111";
+    dibujo.fillRect(813, 171, 38, 53);
+
+    dibujo.fillStyle = "#ffd166";
+    dibujo.beginPath();
+    dibujo.arc(853, 250, 4, 0, Math.PI * 2);
     dibujo.fill();
+
+    dibujo.fillStyle = "#ff334f";
+    dibujo.font = "bold 18px Arial";
+    dibujo.fillText("SALIDA", 797, 135);
+
+    // Piso
+    dibujo.fillStyle = "#303030";
+    dibujo.fillRect(0, 320, 900, 100);
+
+    dibujo.fillStyle = "#161616";
+    dibujo.fillRect(0, 340, 900, 8);
+
+    dibujo.strokeStyle = "#444444";
+    dibujo.lineWidth = 2;
+
+    for (let x = 0; x < 900; x += 90) {
+        dibujo.beginPath();
+        dibujo.moveTo(x, 350);
+        dibujo.lineTo(x + 45, 420);
+        dibujo.stroke();
+    }
+
+    // Monedas
+    for (let i = 0; i < monedas.length; i++) {
+        if (!monedas[i].tomada) {
+            dibujo.fillStyle = "#ffb800";
+            dibujo.beginPath();
+            dibujo.arc(monedas[i].x, monedas[i].y, 11, 0, Math.PI * 2);
+            dibujo.fill();
+
+            dibujo.strokeStyle = "#ffe68a";
+            dibujo.lineWidth = 3;
+            dibujo.stroke();
+
+            dibujo.fillStyle = "#fff0a0";
+            dibujo.font = "bold 13px Arial";
+            dibujo.fillText("$", monedas[i].x - 4, monedas[i].y + 5);
+        }
+    }
+
+    // Enemigo sombra
+    dibujo.fillStyle = "#050505";
+
+    dibujo.beginPath();
+    dibujo.arc(enemigoX, enemigoY - 30, 19, 0, Math.PI * 2);
+    dibujo.fill();
+
+    dibujo.fillRect(enemigoX - 18, enemigoY - 15, 36, 35);
+
+    dibujo.beginPath();
+    dibujo.moveTo(enemigoX - 15, enemigoY + 5);
+    dibujo.lineTo(enemigoX - 28, enemigoY + 28);
+    dibujo.lineTo(enemigoX - 13, enemigoY + 25);
+    dibujo.fill();
+
+    dibujo.beginPath();
+    dibujo.moveTo(enemigoX + 15, enemigoY + 5);
+    dibujo.lineTo(enemigoX + 28, enemigoY + 28);
+    dibujo.lineTo(enemigoX + 13, enemigoY + 25);
+    dibujo.fill();
+
+    // Ojos rojos del enemigo
+    dibujo.fillStyle = "#ff001e";
+    dibujo.fillRect(enemigoX - 11, enemigoY - 35, 7, 5);
+    dibujo.fillRect(enemigoX + 5, enemigoY - 35, 7, 5);
+
+    // Jugador
+    if (!invencible || Math.floor(Date.now() / 100) % 2 === 0) {
+        // Cabeza
+        dibujo.fillStyle = "#e4a477";
+        dibujo.fillRect(jugadorX - 10, jugadorY - 37, 20, 20);
+
+        // Pelo
+        dibujo.fillStyle = "#302019";
+        dibujo.fillRect(jugadorX - 11, jugadorY - 40, 22, 8);
+        dibujo.fillRect(jugadorX - 12, jugadorY - 34, 5, 9);
+
+        // Ojo
+        dibujo.fillStyle = "#111111";
+        dibujo.fillRect(jugadorX + 3, jugadorY - 29, 3, 3);
+
+        // Cuerpo
+        dibujo.fillStyle = "#52769b";
+        dibujo.fillRect(jugadorX - 13, jugadorY - 17, 26, 25);
+
+        // Brazos
+        dibujo.fillStyle = "#e4a477";
+        dibujo.fillRect(jugadorX - 18, jugadorY - 14, 6, 19);
+        dibujo.fillRect(jugadorX + 12, jugadorY - 14, 6, 19);
+
+        // Pantalón
+        dibujo.fillStyle = "#182b49";
+        dibujo.fillRect(jugadorX - 12, jugadorY + 8, 10, 18);
+        dibujo.fillRect(jugadorX + 2, jugadorY + 8, 10, 18);
+
+        // Zapatos
+        dibujo.fillStyle = "#eeeeee";
+        dibujo.fillRect(jugadorX - 15, jugadorY + 24, 13, 5);
+        dibujo.fillRect(jugadorX + 2, jugadorY + 24, 13, 5);
+    }
+
+    // Texto del nivel
+    dibujo.fillStyle = "#ffffff";
+    dibujo.font = "16px Arial";
+    dibujo.fillText("NIVEL " + nivel, 20, 35);
+}
+
+function mover(dx, dy) {
+    if (!jugando) {
+        return;
+    }
+
+    jugadorX += dx;
+    jugadorY += dy;
+
+    // Límites del escenario
+    if (jugadorX < 20) jugadorX = 20;
+    if (jugadorX > 875) jugadorX = 875;
+    if (jugadorY < 190) jugadorY = 190;
+    if (jugadorY > 390) jugadorY = 390;
+
+    // Recoger monedas
+    for (let i = 0; i < monedas.length; i++) {
+        if (!monedas[i].tomada &&
+            Math.abs(jugadorX - monedas[i].x) < 23 &&
+            Math.abs(jugadorY - monedas[i].y) < 25) {
+
+            monedas[i].tomada = true;
+            puntos += 10;
+            actualizarDatos();
+        }
+    }
+
+    // Chocar contra la sombra
+    if (Math.abs(jugadorX - enemigoX) < 30 &&
+        Math.abs(jugadorY - enemigoY) < 35) {
+
+        if (Date.now() - ultimoGolpe > 1200) {
+            vidas--;
+            ultimoGolpe = Date.now();
+            invencible = true;
+
+            jugadorX = 60;
+            jugadorY = 320;
+
+            actualizarDatos();
+
+            document.getElementById("mensaje").textContent =
+                "¡La sombra te atrapó! Perdiste una vida.";
+
+            if (vidas <= 0) {
+                jugando = false;
+                document.getElementById("mensaje").textContent =
+                    "GAME OVER - Presioná REINICIAR JUEGO";
+            }
+        }
+    }
+
+    // Ganar el nivel
+    if (jugadorX > 780 && jugadorY < 340 && jugando) {
+        nivel++;
+        puntos += 50;
+
+        if (nivel > 3) {
+            jugando = false;
+            document.getElementById("mensaje").textContent =
+                "¡FELICITACIONES! ESCAPASTE DE LA ESCUELA.";
+        } else {
+            jugadorX = 40;
+            jugadorY = 320;
+
+            enemigoX = 450;
+            enemigoY = 320;
+
+            crearMonedas();
+            document.getElementById("mensaje").textContent =
+                "¡Nivel completado! Llegá a la salida otra vez.";
+        }
+
+        actualizarDatos();
+    }
+
+    dibujarJuego();
+}
+
+function moverBoton(tecla) {
+    if (tecla == "ArrowUp") mover(0, -15);
+    if (tecla == "ArrowDown") mover(0, 15);
+    if (tecla == "ArrowLeft") mover(-15, 0);
+    if (tecla == "ArrowRight") mover(15, 0);
 }
 
 document.addEventListener("keydown", function(evento) {
-    if (evento.key == "ArrowUp" && jugadorY > 0) {
-        jugadorY = jugadorY - 5;
+    let tecla = evento.key.toLowerCase();
+
+    if (["arrowup", "arrowdown", "arrowleft", "arrowright",
+         "w", "a", "s", "d"].includes(tecla)) {
+        evento.preventDefault();
     }
 
-    if (evento.key == "ArrowDown" && jugadorY < 275) {
-        jugadorY = jugadorY + 5;
-    }
-
-    if (evento.key == "ArrowLeft" && jugadorX > 0) {
-        jugadorX = jugadorX - 5;
-    }
-
-    if (evento.key == "ArrowRight" && jugadorX < 475) {
-        jugadorX = jugadorX + 5;
-    }
-
-    if (Math.abs(jugadorX - monedaX) < 25 &&
-        Math.abs(jugadorY - monedaY) < 25) {
-        puntos = puntos + 10;
-        document.getElementById("puntos").innerHTML = "Puntos: " + puntos;
-
-        monedaX = Math.floor(Math.random() * 450) + 20;
-        monedaY = Math.floor(Math.random() * 250) + 20;
-    }
-
-    dibujar();
+    if (tecla == "arrowup" || tecla == "w") mover(0, -15);
+    if (tecla == "arrowdown" || tecla == "s") mover(0, 15);
+    if (tecla == "arrowleft" || tecla == "a") mover(-15, 0);
+    if (tecla == "arrowright" || tecla == "d") mover(15, 0);
 });
 
-dibujar();
+// Movimiento automático del enemigo
+setInterval(function() {
+    if (!jugando) return;
+
+    if (enemigoX < jugadorX) enemigoX += 2;
+    if (enemigoX > jugadorX) enemigoX -= 2;
+
+    if (enemigoY < jugadorY) enemigoY += 1;
+    if (enemigoY > jugadorY) enemigoY -= 1;
+
+    if (invencible && Date.now() - ultimoGolpe > 1200) {
+        invencible = false;
+        document.getElementById("mensaje").textContent =
+            "¡Seguí avanzando hasta la salida!";
+    }
+
+    dibujarJuego();
+}, 50);
+
+// Iniciar el juego
+reiniciarJuego();
 </script>
 
 </body>
