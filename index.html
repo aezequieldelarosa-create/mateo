@@ -1,11 +1,23 @@
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Sombras del Pasillo</title>
 </head>
-<body>
+<body style="background-color: black; color: white;">
 
+<h2>Sombras del Pasillo</h2>
 <p id="puntos">Puntos: 0</p>
+
+<div style="position: relative; width: 500px; height: 300px; background-color: #333;">
+
+    <img id="jugador" src="jugador.png"
+    style="position: absolute; left: 100px; top: 100px; width: 40px;">
+
+    <img id="moneda" src="moneda.png"
+    style="position: absolute; left: 200px; top: 200px; width: 30px;">
+
+</div>
 
 <script>
 let jugadorX = 100;
@@ -36,10 +48,20 @@ function mover(evento) {
         jugadorX = jugadorX + 5;
     }
 
-    if (jugadorX == monedaX && jugadorY == monedaY) {
+    document.getElementById("jugador").style.left = jugadorX + "px";
+    document.getElementById("jugador").style.top = jugadorY + "px";
+
+    if (Math.abs(jugadorX - monedaX) < 30 &&
+        Math.abs(jugadorY - monedaY) < 30) {
+
         puntos = puntos + 10;
-        document.getElementById("puntos").innerHTML =
-        "Puntos: " + puntos;
+        document.getElementById("puntos").innerHTML = "Puntos: " + puntos;
+
+        monedaX = Math.floor(Math.random() * 450);
+        monedaY = Math.floor(Math.random() * 250);
+
+        document.getElementById("moneda").style.left = monedaX + "px";
+        document.getElementById("moneda").style.top = monedaY + "px";
     }
 }
 </script>
