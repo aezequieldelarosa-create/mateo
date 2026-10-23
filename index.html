@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sombras del Pasillo</title>
+</head>
+<body>
+
+<p id="puntos">Puntos: 0</p>
+
+<script>
+let jugadorX = 100;
+let jugadorY = 100;
+
+let monedaX = 200;
+let monedaY = 200;
+
+let puntos = 0;
+
+document.addEventListener("keydown", mover);
+
+function mover(evento) {
+
+    if (evento.key == "ArrowUp") {
+        jugadorY = jugadorY - 5;
+    }
+
+    if (evento.key == "ArrowDown") {
+        jugadorY = jugadorY + 5;
+    }
+
+    if (evento.key == "ArrowLeft") {
+        jugadorX = jugadorX - 5;
+    }
+
+    if (evento.key == "ArrowRight") {
+        jugadorX = jugadorX + 5;
+    }
+
+    if (jugadorX == monedaX && jugadorY == monedaY) {
+        puntos = puntos + 10;
+        document.getElementById("puntos").innerHTML =
+        "Puntos: " + puntos;
+    }
+}
+</script>
+
+</body>
+</html>
