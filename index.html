@@ -9,61 +9,61 @@
 <h2>Sombras del Pasillo</h2>
 <p id="puntos">Puntos: 0</p>
 
-<div style="position: relative; width: 500px; height: 300px; background-color: #333;">
-
-    <img id="jugador" src="jugador.png"
-    style="position: absolute; left: 100px; top: 100px; width: 40px;">
-
-    <img id="moneda" src="moneda.png"
-    style="position: absolute; left: 200px; top: 200px; width: 30px;">
-
-</div>
+<canvas id="juego" width="500" height="300"
+style="background-color: #333;"></canvas>
 
 <script>
 let jugadorX = 100;
 let jugadorY = 100;
-
 let monedaX = 200;
 let monedaY = 200;
-
 let puntos = 0;
 
-document.addEventListener("keydown", mover);
+let pantalla = document.getElementById("juego");
+let dibujo = pantalla.getContext("2d");
 
-function mover(evento) {
+function dibujar() {
+    dibujo.clearRect(0, 0, 500, 300);
 
-    if (evento.key == "ArrowUp") {
+    dibujo.fillStyle = "red";
+    dibujo.fillRect(jugadorX, jugadorY, 25, 25);
+
+    dibujo.fillStyle = "yellow";
+    dibujo.beginPath();
+    dibujo.arc(monedaX, monedaY, 10, 0, 6.28);
+    dibujo.fill();
+}
+
+document.addEventListener("keydown", function(evento) {
+    if (evento.key == "ArrowUp" && jugadorY > 0) {
         jugadorY = jugadorY - 5;
     }
 
-    if (evento.key == "ArrowDown") {
+    if (evento.key == "ArrowDown" && jugadorY < 275) {
         jugadorY = jugadorY + 5;
     }
 
-    if (evento.key == "ArrowLeft") {
+    if (evento.key == "ArrowLeft" && jugadorX > 0) {
         jugadorX = jugadorX - 5;
     }
 
-    if (evento.key == "ArrowRight") {
+    if (evento.key == "ArrowRight" && jugadorX < 475) {
         jugadorX = jugadorX + 5;
     }
 
-    document.getElementById("jugador").style.left = jugadorX + "px";
-    document.getElementById("jugador").style.top = jugadorY + "px";
-
-    if (Math.abs(jugadorX - monedaX) < 30 &&
-        Math.abs(jugadorY - monedaY) < 30) {
-
+    if (Math.abs(jugadorX - monedaX) < 25 &&
+        Math.abs(jugadorY - monedaY) < 25) {
         puntos = puntos + 10;
         document.getElementById("puntos").innerHTML = "Puntos: " + puntos;
 
-        monedaX = Math.floor(Math.random() * 450);
-        monedaY = Math.floor(Math.random() * 250);
-
-        document.getElementById("moneda").style.left = monedaX + "px";
-        document.getElementById("moneda").style.top = monedaY + "px";
+        monedaX = Math.floor(Math.random() * 450) + 20;
+        monedaY = Math.floor(Math.random() * 250) + 20;
     }
-}
+
+    dibujar();
+});
+
+dibujar();
 </script>
 
 </body>
